@@ -1,6 +1,12 @@
 import streamlit as st
 import pandas as pd
 import os
+DATA_FILE = "spendwise_data.csv"
+
+if os.path.exists(DATA_FILE):
+    df = pd.read_csv(DATA_FILE)
+else:
+    df = pd.DataFrame(columns=["Date", "Category", "Amount", "Note"])
 from datetime import date
 
 st.set_page_config(page_title="Student Expense Analyzer", layout="centered")
@@ -38,21 +44,20 @@ category = st.selectbox("category",
 )
 
 amount = st.number_input("Amount (₹)", min_value=0.0, step=10.0)
+# ✅ ADD THIS LINE HERE
+note = st.text_input("Note (optional)")
 
 if st.button("Save Expense"):
-    month = expense_date.strftime("%Y-%m")
-
-    new_row = {
-        "Date": expense_date,
+     new_row = {
+        "Date": date,
         "Category": category,
         "Amount": amount,
-        "Month": month
+        "Note": note
     }
 
-    df = pd.concat([df, pd.DataFrame([new_row])], ignore_index=True)
-    df.to_csv(DATA_FILE, index=False)
-
-    st.success("✅ Expense saved successfully!")
+     df = pd.concat([df, pd.DataFrame([new_row])], ignore_index=True)
+     df.to_csv(DATA_FILE, index=False)
+     st.success("Expense added successfully!")
 
 # ---------- Show Daily Data ----------
 st.header("📋 All Expenses")
@@ -60,6 +65,10 @@ st.dataframe(df)
 
 # ---------- Monthly Summary ----------
 st.header("📊 Monthly Expense Summary")
+df["Date"] = pd.to_datetime(df["Date"])
+monthly_total = df.groupby(df["Date"].dt.to_period("M"))["Amount"].sum()
+
+st.bar_chart(monthly_total)
 
 if not df.empty:
     monthly_summary = df.groupby("Month")["Amount"].sum().reset_index()
