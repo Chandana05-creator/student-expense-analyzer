@@ -1,46 +1,85 @@
+import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
-import streamlit as st
-# App Title 
+from datetime import date
 
-# Upload File 
-st.title("Student Expense Analyzer")
-st.write("App is running successfully ")
-uploaded_file = st.file_uploader("Upload your CSV file", type=["csv"])
-if uploaded_file:
-    df = pd.read_csv(uploaded_file)
+st.set_page_config(page_title="Student Expense Analyzer", layout="centered")
 
-    # Show first 5 rows
-    st.write("### Sample Data")
-    st.dataframe(df.head())
+st.title("📊 Student Expense Analyzer")
+st.write("Analyze your expenses easily — upload CSV or enter manually.")
+# SESSION STATE INITIALIZATION
+if "expenses" not in st.session_state:
+    st.session_state.expenses = pd.DataFrame(
+        columns=["Date", "Category", "Amount"]
+    )
+# INPUT METHOD SELECTION
+option = st.radio(
+    "How would you like to add expenses?",
+    ("Upload CSV", "Enter Manually")
+)
+# OPTION 1: CSV UPLOAD
+if option == "Upload CSV":
+    uploaded_file = st.file_uploader("Upload CSV file", type=["csv"])
 
-    # Total Expense
-    total = df['Amount'].sum()
-    st.write(f"**Total Expense:** {total}")
+    if uploaded_file:
+        try:
+            df = pd.read_csv(uploaded_file)
+            df.columns = ["Date", "Category", "Amount"]
+            st.session_state.expenses = df
+            st.success("CSV uploaded successfully!")
+        except:
+            st.error("CSV format should be: Date, Category, Amount")
+# OPTION 2: MANUAL ENTRY
+if option == "Enter Manually":
+    st.subheader("➕ Add Expense")
 
-    # Category-wise Expense
-    cat_exp = df.groupby("Category")['Amount'].sum()
-    st.write("### Expense by Category")
-    st.dataframe(cat_exp)
+    exp_date = st.date_input("Date", date.today())
+    category = st.selectbox(
+        "Category",
+        ["Food", "Travel", "Rent", "Education", "Shopping", "Other"]
+    )
+    amount = st.number_input("Amount (₹)", min_value=0.0, step=10.0)
 
-    # Highest & Lowest Category
-    max_cat = cat_exp.idxmax()
-    min_cat = cat_exp.idxmin()
-    st.write(f"**Highest Spending Category:** {max_cat} → {cat_exp[max_cat]}")
-    st.write(f"**Lowest Spending Category:** {min_cat} → {cat_exp[min_cat]}")
+    if st.button("Add Expense"):
+        new_data = {
+            "Date": exp_date,
+            "Category": category,
+            "Amount": amount
+        }
 
-    # Bar Chart
-    st.write("### Bar Chart of Expenses by Category")
-    plt.figure(figsize=(8,5))
-    cat_exp.plot(kind='bar', color='skyblue')
-    plt.xlabel("Category")
-    plt.ylabel("Amount")
-    plt.xticks(rotation=45)
-    plt.tight_layout()
-    st.pyplot(plt)
+        st.session_state.expenses = pd.concat(
+            [st.session_state.expenses, pd.DataFrame([new_data])],
+            ignore_index=True
+        )
 
-    # Save Summary
-    summary = cat_exp.reset_index()
-    summary.columns = ['Category', 'Amount']
-    summary.to_csv("category_summary.csv", index=False)
-    st.write("✅ Summary saved as category_summary.csv")
+        st.success("Expense added successfully!")
+# DATA DISPLAY & ANALYSIS
+if not st.session_state.expenses.empty:
+    df = st.session_state.expenses
+
+    st.subheader("📋 Expense Records")
+    st.dataframe(df)
+
+    st.subheader("📈 Category-wise Expense Summary")
+    summary = df.groupby("Category")["Amount"].sum()
+
+    fig, ax = plt.subplots()
+    summary.plot(kind="bar", ax=ax)
+    ax.set_ylabel("Amount (₹)")
+    ax.set_xlabel("Category")
+    st.pyplot(fig)
+
+    st.subheader("🥧 Expense Distribution")
+    fig2, ax2 = plt.subplots()
+    ax2.pie(summary, labels=summary.index, autopct="%1.1f%%")
+    st.pyplot(fig2)
+
+    st.download_button(
+        "⬇️ Download Expenses as CSV",
+        df.to_csv(index=False),
+        "expenses.csv",
+        "text/csv"
+    )
+
+else:
+    st.info("No expense data available. Add expenses to see analysis.")
