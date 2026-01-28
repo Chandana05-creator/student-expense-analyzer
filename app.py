@@ -20,10 +20,23 @@ else:
 st.header("➕ Add Today’s Expense")
 
 expense_date = st.date_input("Date", date.today())
-category = st.selectbox(
-    "Category",
-    ["Food", "Travel", "Books", "Rent", "Entertainment", "Other"]
+category = st.selectbox("category",
+     [
+        "Food",
+        "Snacks",
+        "Travel",
+        "Books",
+        "Home Appliances",
+        "Rent",
+        "Entertainment",
+        "Mobile / Internet",
+        "Medical",
+        "Education",
+        "Clothing",
+        "Other"
+    ]
 )
+
 amount = st.number_input("Amount (₹)", min_value=0.0, step=10.0)
 
 if st.button("Save Expense"):
