@@ -5,8 +5,8 @@ from datetime import date
 
 st.set_page_config(page_title="Student Expense Analyzer", layout="centered")
 
-st.title("💸 Student Expense Analyzer")
-st.write("Track daily expenses & view monthly totals")
+st.title("SpendWise – Smart Expense Tracker")
+st.write("Track daily expenses & view monthly insights")
 
 DATA_FILE = "expenses.csv"
 
