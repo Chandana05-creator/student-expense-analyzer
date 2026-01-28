@@ -1,5 +1,4 @@
-# 🎓 Student Expense Analyzer
-
+# 🎓 SpendWise – Smart Expense Tracker
 A simple and interactive **Streamlit web application** to analyze student expenses using CSV files.  
 This project helps students understand their spending patterns through summaries and category-wise analysis.
 
