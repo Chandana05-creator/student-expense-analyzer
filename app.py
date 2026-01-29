@@ -3,8 +3,6 @@ import pandas as pd
 import os
 from datetime import date
 import matplotlib.pyplot as plt
-st.cache_data.clear()
-st.cache_resource.clear()
 
 # -----------------------------
 # PAGE CONFIG
@@ -19,13 +17,23 @@ st.markdown("<h3 style='color:green;'>Smart expense tracking made simple!</h3>",
 st.markdown("---")
 
 # -----------------------------
-# DATA FILE
+# USER NAME (for user-wise data)
 # -----------------------------
-DATA_FILE = "expenses.csv"
+user_name = st.text_input("👤 Enter your name")
 
-# ---------- Load or Create Data ----------
-if os.path.exists(DATA_FILE):
-    df = pd.read_csv(DATA_FILE)
+if user_name:
+    DATA_FILE = f"{user_name.lower().replace(' ', '_')}_expenses.csv"
+else:
+    DATA_FILE = None
+
+# -----------------------------
+# LOAD OR CREATE DATA
+# -----------------------------
+if DATA_FILE:
+    if os.path.exists(DATA_FILE):
+        df = pd.read_csv(DATA_FILE)
+    else:
+        df = pd.DataFrame(columns=["Date", "Category", "Amount", "Month", "Note"])
 else:
     df = pd.DataFrame(columns=["Date", "Category", "Amount", "Month", "Note"])
 
@@ -37,23 +45,27 @@ st.header("➕ Add Today’s Expense")
 expense_date = st.date_input("Date", date.today())
 category = st.selectbox(
     "Category",
-    ["Food", "Snacks", "Travel", "Books", "Rent", "Entertainment", "Home Appliances", "Health", "Grocery", "Other"]
+    ["Food", "Snacks", "Travel", "Books", "Rent", "Entertainment",
+     "Home Appliances", "Health", "Grocery","electric bill","water bill","petroleum","Other"]
 )
 amount = st.number_input("Amount (₹)", min_value=0.0, step=10.0)
 note = st.text_input("Note (optional)")
 
 if st.button("Save Expense"):
-    new_row = {
-        "Date": expense_date.strftime("%Y-%m-%d"),
-        "Category": category,
-        "Amount": amount,
-        "Month": expense_date.strftime("%Y-%m"),
-        "Note": note if note else "-"
-    }
-    df = pd.concat([df, pd.DataFrame([new_row])], ignore_index=True)
-    df.to_csv(DATA_FILE, index=False)
-    st.success("✅ Expense saved successfully!")
-    st.rerun()
+    if not user_name:
+        st.error("❌ Please enter your name first")
+    else:
+        new_row = {
+            "Date": expense_date.strftime("%Y-%m-%d"),
+            "Category": category,
+            "Amount": amount,
+            "Month": expense_date.strftime("%Y-%m"),
+            "Note": note if note else "-"
+        }
+        df = pd.concat([df, pd.DataFrame([new_row])], ignore_index=True)
+        df.to_csv(DATA_FILE, index=False)
+        st.success("✅ Expense saved successfully!")
+        st.rerun()
 
 # -----------------------------
 # SHOW ALL EXPENSES
@@ -92,7 +104,7 @@ else:
     st.bar_chart(monthly_summary.set_index("Month"))
 
 # -----------------------------
-# EXPENSE BY CATEGORY (TABLE + PIE CHART)
+# EXPENSE BY CATEGORY
 # -----------------------------
 if not df.empty:
     st.header("📈 Expense by Category")
@@ -101,32 +113,31 @@ if not df.empty:
     col1, col2 = st.columns(2)
 
     with col1:
-        st.markdown("<h4 style='color:purple;'>📊 Table View</h4>", unsafe_allow_html=True)
         st.dataframe(category_sum)
 
     with col2:
-        st.markdown("<h4 style='color:orange;'>📈 Chart View</h4>", unsafe_allow_html=True)
         fig, ax = plt.subplots()
-        ax.pie(category_sum['Amount'], labels=category_sum['Category'], autopct='%1.1f%%', startangle=90)
-        ax.axis('equal')
+        ax.pie(
+            category_sum["Amount"],
+            labels=category_sum["Category"],
+            autopct="%1.1f%%",
+            startangle=90
+        )
+        ax.axis("equal")
         st.pyplot(fig)
 
-    # Highlight top expense category
-    top_category = category_sum.loc[category_sum['Amount'].idxmax()]
+    # Top category
+    top_category = category_sum.loc[category_sum["Amount"].idxmax()]
     st.markdown(
-        f"<h3 style='color:red;'>🔥 Top Expense: {top_category['Category']} - ₹{top_category['Amount']}</h3>",
-        unsafe_allow_html=True
+        f"🔥 **Top Expense:** {top_category['Category']} – ₹{top_category['Amount']}"
     )
 
 # -----------------------------
-# BONUS TIP BOX
+# FOOTER TIP
 # -----------------------------
 st.markdown(
     """
-    <div style='background-color: #f0f8ff; padding: 15px; border-radius: 10px; margin-top:10px;'>
-        <h3 style='color:#333;'>💡 Tip:</h3>
-        <p>Track your spending consistently and review your top categories to save money each month!</p>
-    </div>
-    """,
-    unsafe_allow_html=True
+    💡 **Tip:**  
+    Track expenses daily and reduce spending in your top category to save more!
+    """
 )
