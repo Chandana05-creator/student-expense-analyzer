@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 
 # Load data
 df = pd.read_excel("expenses.xlsx")
+df["Date"] = pd.to_datetime(df["Date"]).dt.date
 
 # Show first few rows
 print("First 5 rows:")
