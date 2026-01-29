@@ -22,7 +22,7 @@ st.header("➕ Add Today’s Expense")
 expense_date = st.date_input("Date", date.today())
 category = st.selectbox(
     "Category",
-    ["Food", "Travel", "Books", "Rent", "Entertainment", "Other"]
+    ["Food", "Travel", "Books", "Rent", "Entertainment", "home applicanes","health","grocery","Other"]
 )
 amount = st.number_input("Amount (₹)", min_value=0.0, step=10.0)
 note = st.text_input("Note (optional)")
