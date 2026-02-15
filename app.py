@@ -17,9 +17,21 @@ st.markdown("<h3 style='color:green;'>Smart expense tracking made simple!</h3>",
 st.markdown("---")
 
 # -----------------------------
-# USER NAME (for user-wise data)
+# USER NAME (store permanently)
 # -----------------------------
-user_name = st.text_input("👤 Enter your name")
+if "user_name" not in st.session_state:
+    st.session_state.user_name = ""
+
+if st.session_state.user_name == "":
+    name_input = st.text_input("👤 Enter your name")
+    if name_input:
+        st.session_state.user_name = name_input
+        st.success(f"Welcome {name_input} 👋")
+        st.rerun()
+else:
+    st.write(f"👤 Logged in as: {st.session_state.user_name}")
+
+user_name = st.session_state.user_name
 
 if user_name:
     DATA_FILE = f"{user_name.lower().replace(' ', '_')}_expenses.csv"
